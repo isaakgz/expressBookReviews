@@ -10,8 +10,27 @@ app.use(express.json());
 
 app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
 
+
 app.use("/customer/auth/*", function auth(req,res,next){
-//Write the authenication mechanism here
+
+    //check if the user is authenticated
+    if (req.session.authorization){
+       const token = req.session.authorization["token"];
+        //verify the token
+        jwt.verify(token, 'secretekey', (err, user)=>{
+            //check if the token is valid
+            if(err){
+                return res.status(403).json({message:"invalid token"})
+            } else{
+                req.user = user;
+                next();
+            }
+        })
+        } else{
+            res.status(403).json({message:"user not authenticated"})
+
+        }
+
 });
  
 const PORT =5000;
